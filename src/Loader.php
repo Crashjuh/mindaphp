@@ -9,7 +9,7 @@ class Loader
     protected static $nsChar = '\\';
     protected static $initialized = false;
     protected static $files = null;
-
+    
     protected static function initialize()
     {
         if (static::$initialized) {
@@ -29,9 +29,9 @@ class Loader
         if (!static::$initialized) {
             static::initialize();
         }
-        static::$paths[$namespace] = trim($path, DIRECTORY_SEPARATOR);
+        static::$paths[trim($path, DIRECTORY_SEPARATOR)] = $namespace;
     }
-
+    
     public static function load($class)
     {
         if (class_exists($class, false)) {
@@ -40,12 +40,12 @@ class Loader
         if (!static::$initialized) {
             static::initialize();
         }
-        foreach (static::$paths as $namespace => $path) {
+        foreach (static::$paths as $path => $namespace) {
             if (!$namespace || $namespace.static::$nsChar === substr($class, 0, strlen($namespace.static::$nsChar))) {
                 $fileName = substr($class, strlen($namespace.static::$nsChar) - 1);
                 $fileName = str_replace(static::$nsChar, DIRECTORY_SEPARATOR, ltrim($fileName, static::$nsChar));
                 $fileName = static::$parentPath.DIRECTORY_SEPARATOR.$path.DIRECTORY_SEPARATOR.$fileName.'.php';
-
+                
                 if (file_exists($fileName)) {
                     static::$files[] = $fileName;
                     include $fileName;
@@ -70,20 +70,21 @@ class Loader
             $class = substr($class, strlen(__NAMESPACE__) + strlen(static::$nsChar));
         }
         if (strpos($class, static::$nsChar) === false) {
-            $fileName = dirname(__FILE__).DIRECTORY_SEPARATOR.$class.'.php';
-            if (file_exists($fileName)) {
-                static::$files[] = $fileName;
-                include $fileName;
-                class_alias(__NAMESPACE__.static::$nsChar.$class, $class);
-                static::setParameters($class);
-
-                return true;
+            foreach (static::$paths as $path => $namespace) {
+                $fileName = static::$parentPath.DIRECTORY_SEPARATOR.$path.DIRECTORY_SEPARATOR.$class.'.php';
+                if (file_exists($fileName)) {
+                    static::$files[] = $fileName;
+                    include $fileName;
+                    class_alias(__NAMESPACE__.static::$nsChar.$class, $class);
+                    static::setParameters($class);
+                    return true;
+                }
             }
         }
 
         return false;
     }
-
+    
     protected static function setParameters($className)
     {
         $parameterClassName = __NAMESPACE__.static::$nsChar.'Config'.static::$nsChar.$className;
