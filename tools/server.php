@@ -17,5 +17,7 @@ if (in_array($_SERVER['SCRIPT_NAME'], $tools)) {
 } else {
     $_SERVER['SCRIPT_NAME'] = '/index.php';
     chdir('webroot');
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: DENY');
     require 'index.php';
 }
