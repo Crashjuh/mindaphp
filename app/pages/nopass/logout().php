@@ -1,2 +1,0 @@
-<?php
-NoPassAuth::logout();

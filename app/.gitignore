@@ -1,7 +1,0 @@
-.buildpath
-.project
-.settings
-project.geany
-config/app.php
-/vendor/
-/sessions/
